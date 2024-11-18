@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./Login.css";
-import logo from "../../assets/logo_for__BrewBuzz_Café_-removebg-preview 2.png"; // Import the logo asset
+import logo from "../../assets/logo.png"; // Import the logo asset
 
 function Login() {
   const [email, setEmail] = useState("");
