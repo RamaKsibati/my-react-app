@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import "./CreateAccount.css";
-import logo from "../../assets/logo.png";
+import API from "../../api"; // Import the Axios instance
 import { useNavigate } from "react-router-dom";
+import "./CreateAccount.css";
 
 function CreateAccount() {
   const navigate = useNavigate();
-  const [isCustomer, setIsCustomer] = useState(true); // Toggle state
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -14,59 +13,62 @@ function CreateAccount() {
     confirmPassword: "",
     state: "",
     zipcode: "",
+    accountType: "Customer", // Default to Customer
     agreeToPolicy: false,
   });
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(`${isCustomer ? "Customer" : "Business"} Form submitted:`, formData);
+    const { password, confirmPassword, agreeToPolicy } = formData;
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    if (!agreeToPolicy) {
+      alert("You must agree to the policy!");
+      return;
+    }
+
+    try {
+      // Send registration data to the backend
+      console.log("Form data being sent:", formData);
+
+      const response = await API.post("/register", formData);
+      console.log("Testing API instance:", API);
+
+      alert(response.data.message);
+      navigate("/login"); // Redirect to login page
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.error || "An error occurred during registration.");
+    }
   };
 
   return (
     <div className="create-account-container">
-      <img src={logo} alt="BrewBuzz Café Logo" className="logo" />
-      
-      {/* Toggle Buttons */}
-      <div className="toggle-buttons">
-        <button
-          className={isCustomer ? "active" : ""}
-          onClick={() => setIsCustomer(true)}
-        >
-          Customer
-        </button>
-        <button
-          className={!isCustomer ? "active" : ""}
-          onClick={() => setIsCustomer(false)}
-        >
-          Business
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="create-account-form">
-        <div className="name-fields">
-          <input
-            type="text"
-            name="firstName"
-            placeholder="First Name"
-            onChange={handleInputChange}
-            required
-          />
-          <input
-            type="text"
-            name="lastName"
-            placeholder="Last Name"
-            onChange={handleInputChange}
-            required
-          />
-        </div>
+      <form onSubmit={handleSubmit}>
+        {/* Form Fields */}
+        <input
+          type="text"
+          name="firstName"
+          placeholder="First Name"
+          onChange={handleInputChange}
+          required
+        />
+        <input
+          type="text"
+          name="lastName"
+          placeholder="Last Name"
+          onChange={handleInputChange}
+          required
+        />
         <input
           type="email"
           name="email"
@@ -88,23 +90,19 @@ function CreateAccount() {
           onChange={handleInputChange}
           required
         />
-        <div className="address-fields">
-          <input
-            type="text"
-            name="state"
-            placeholder="State"
-            onChange={handleInputChange}
-            required
-          />
-          <input
-            type="text"
-            name="zipcode"
-            placeholder="Zipcode"
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <label className="policy-checkbox">
+        <input
+          type="text"
+          name="state"
+          placeholder="State"
+          onChange={handleInputChange}
+        />
+        <input
+          type="text"
+          name="zipcode"
+          placeholder="Zipcode"
+          onChange={handleInputChange}
+        />
+        <label>
           <input
             type="checkbox"
             name="agreeToPolicy"
@@ -113,11 +111,7 @@ function CreateAccount() {
           />
           I agree to the BrewBuzz Customer policy.
         </label>
-        <button type="submit" className="create-button">Create</button>
-        <p>
-          Already have an account?{" "}
-          <span onClick={() => navigate("/login")} className="sign-in-link">Sign in</span>
-        </p>
+        <button type="submit">Create Account</button>
       </form>
     </div>
   );

@@ -1,33 +1,60 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import "./login.css";
-import logo from "../../assets/logo.png";
+import React, { useState } from "react";
+import API from "../../api"; // Import the Axios instance
+import { useNavigate } from "react-router-dom"; // For navigation
+import "./login.css"; // Path should match the location of your CSS file
+
+
 
 function Login() {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: "", password: "" });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Send login data to the backend
+      const response = await API.post("/login", formData);
+      
+      // Save the token in localStorage
+      localStorage.setItem("token", response.data.token);
+
+      alert("Login successful!");
+      navigate("/dashboard"); // Redirect to the dashboard or homepage
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.error || "Invalid email or password.");
+    }
+  };
 
   return (
     <div className="login-container">
-      <div className="login-card">
-        <img src={logo} alt="BrewBuzz Café" className="login-logo" />
-        <form>
-          <div className="input-group">
-            <label htmlFor="email">Email:</label>
-            <input type="email" id="email" placeholder="Enter your email" required />
-          </div>
-          <div className="input-group">
-            <label htmlFor="password">Password:</label>
-            <input type="password" id="password" placeholder="Enter your password" required />
-          </div>
-          <button type="submit" className="login-button">Sign In</button>
-        </form>
-        <div className="login-links">
-          <a href="#reset-password">Reset Password</a>
-          <a onClick={() => navigate("/create-account")}>Create an account</a>
-        </div>
-      </div>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleInputChange}
+          required
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={formData.password}
+          onChange={handleInputChange}
+          required
+        />
+        <button type="submit">Sign In</button>
+      </form>
     </div>
   );
 }
 
 export default Login;
+
